@@ -1,0 +1,13 @@
+1. vpc
+
+2. ec2
+
+3. alb
+
+4. waf
+
+--내가 할거--
+
+1. terraform 실행
+
+2. app ec2에서 앱 실행

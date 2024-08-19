@@ -1,0 +1,39 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - |
+        git config --global credential.helper '!aws codecommit credential-helper $@' \
+        && git config --global credential.UseHttpPath true
+
+  pre_build:
+    commands: 
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region us-west-1 | docker login --username AWS --password-stdin 702661606257.dkr.ecr.us-west-1.amazonaws.com
+
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Building the Docker image...
+      - echo 'FROM python:3.12-alpine' > Dockerfile
+      - echo 'WORKDIR /app' >> Dockerfile
+      - echo 'COPY . .' >> Dockerfile
+      - echo 'RUN pip install -r requirements.txt' >> Dockerfile
+      - echo 'RUN apk update' >> Dockerfile
+      - echo 'RUN apk add curl' >> Dockerfile
+      - echo 'CMD ["python3", "main.py"]' >> Dockerfile
+      - docker build -t ecs-cicd-app-repo .
+      - docker tag ecs-cicd-app-repo:latest 702661606257.dkr.ecr.us-west-1.amazonaws.com/ecs-cicd-app-repo:latest
+
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the Docker image to Amazon ECR...
+      - docker push 702661606257.dkr.ecr.us-west-1.amazonaws.com/ecs-cicd-app-repo:latest
+      - echo Updating task definition...
+
+artifacts:
+  files:
+    - appspec.yaml
+    - taskdef.json

@@ -1,0 +1,22 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands: #ecr 로그인 하는 명령어
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin 702661606257.dkr.ecr.ap-northeast-2.amazonaws.com
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Building the Docker image...
+      - docker build -t ecs-cicd-app-repo . #ecr image build 명령어
+      - docker tag ecs-cicd-app-repo:latest 702661606257.dkr.ecr.ap-northeast-2.amazonaws.com/ecs-cicd-app-repo:latest #ecr image 태그변경 명령어
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the Docker image to Amazon ECR...
+      - docker push 702661606257.dkr.ecr.ap-northeast-2.amazonaws.com/ecs-cicd-app-repo:latest #ecr push하는 명령어
+artifacts:
+  files:
+    - appspec.yaml
+    - taskdef.json

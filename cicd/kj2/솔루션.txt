@@ -1,0 +1,36 @@
+1. vpc
+
+2. bastion
+
+3. eks
+
+4. code series
+
+
+--내가 할거--
+
+1. terraform 실행
+
+3. bastion에 필요한거 설치(docker, git, kubectl, eksctl, helm)
+
+4. eks clsuter 생성(그동안 나머지 파일 작성)
+
+5. docker image 생성
+
+6. argocd install
+- https://argo-cd.readthedocs.io/en/stable/getting_started/#1-install-argo-cd
+- 설치하고 service유형을 loadbalancer로 바꾸기까지
+
+7. argo rollouts install
+- https://argoproj.github.io/argo-rollouts/installation/
+
+- curl -LO https://github.com/argoproj/argo-rollouts/releases/latest/download/kubectl-argo-rollouts-linux-amd64
+- chmod +x ./kubectl-argo-rollouts-linux-amd64
+- sudo mv ./kubectl-argo-rollouts-linux-amd64 /usr/local/bin/kubectl-argo-rollouts
+- 이렇게까지 해줘야 rollouts kubectl 플러그인이 설치됨
+
+8. eks 매니페스트 적용(rollouts 생성전에 service먼저 만들어야 함)
+- kubectl apply -k <디렉터리명>
+
+9. 매니페스트 codecommit 업로드 -> app codecommit 업로드(매니페스트가 업로드가 되어있어야 codebuild에서 사용가능함)
+- 매니페스트를 업로드할 때 app폴더안에 rollouts.yaml, ingress.yaml, service.yaml만 넣고 업로드하기

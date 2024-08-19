@@ -1,0 +1,13 @@
+--- codecommit ---
+git config --global credential.helper '!aws codecommit credential-helper $@'
+git config --global credential.UseHttpPath true
+
+
+--- 해야 할거 ---
+1. terraform 실행
+
+2. Bastion에 docker, git, etc.. 설치
+
+3. scripts 폴더에 sh 스크립트 수정
+
+4. codecommit에 애플리케이션 push

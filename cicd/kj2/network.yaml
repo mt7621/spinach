@@ -1,0 +1,277 @@
+AWSTemplateFormatVersion: 2010-09-09
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      InstanceTenancy: default
+      Tags:
+        - Key: Name
+          Value: argocd-vpc
+
+  SubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: ap-northeast-2a
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.0.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: subnet-a
+
+  SubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: ap-northeast-2b
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.1.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: subnet-b
+
+  PrivateSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: ap-northeast-2a
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.2.0/24
+      Tags:
+        - Key: Name
+          Value: private-a
+
+  PrivateSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: ap-northeast-2b
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.3.0/24
+      Tags:
+        - Key: Name
+          Value: private-b
+
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: rtb
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: private-rtb
+  
+  RouteTableSubnetAAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref RouteTable
+      SubnetId: !Ref SubnetA
+
+  RouteTableSubnetBAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref RouteTable
+      SubnetId: !Ref SubnetB
+
+  IGW:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: IGW
+
+  IGWAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref IGW
+
+  VPCRouteTableRoute:
+    Type: AWS::EC2::Route
+    DependsOn: IGW
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref IGW
+      RouteTableId: !Ref RouteTable
+
+  PrivateRouteTablePrivateAAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref PrivateSubnetA
+
+  PrivateRouteTablePrivateBAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref PrivateSubnetB
+
+  EIP:
+   Type: AWS::EC2::EIP
+   Properties:
+      Domain: vpc
+      
+  NAT:
+   Type: AWS::EC2::NatGateway
+   Properties:
+      AllocationId: !GetAtt EIP.AllocationId
+      SubnetId: !Ref SubnetA
+      Tags:
+      - Key: Name
+        Value: NAT
+
+  PrivateRouteTableRoute:
+   Type: AWS::EC2::Route
+   Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      DestinationCidrBlock: "0.0.0.0/0"
+      NatGatewayId: !Ref NAT
+
+  CodeCommit:
+    Type: AWS::CodeCommit::Repository
+    Properties:
+      RepositoryName: gwangju-application-repo
+      RepositoryDescription: asd
+
+  CodebuildRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - codebuild.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      RoleName: codebuild
+
+  CodebuildPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: ec2-admin-policy
+      Roles:
+        - !Ref CodebuildRole
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "*"
+            Resource: "*"
+  
+  Codebuild:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: argocdbuild
+      Description: asd
+      ServiceRole: !GetAtt CodebuildRole.Arn
+      Artifacts:
+        Type: no_artifacts
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:5.0
+        EnvironmentVariables:
+        - Name: AWS_DEFAULT_REGION
+          Type: PLAINTEXT
+          Value: ap-northeast-2
+        - Name: AWS_ACCOUNT_ID
+          Type: PLAINTEXT
+          Value: 702661606257
+        - Name: IMAGE_TAG
+          Type: PLAINTEXT
+          Value: app
+        - Name: IMAGE_REPO_NAME
+          Type: PLAINTEXT
+          Value: app
+        - Name: OPS_REPO_NAME
+          Type: PLAINTEXT
+          Value: ops-repo
+        - Name: CODECOMMIT_ACCESS_KEY
+          Type: PLAINTEXT
+          Value: codecommit-at-702661606257
+        - Name: CODECOMMIT_SECRET_KEY
+          Type: PLAINTEXT
+          Value: 7akYgSLZv65h53ab38o7mdLesHPrJtAwCXjQpV02m0fbmEo3gu1o1Ux37P8=
+      Source:
+        Location: gwangju-application-repo
+        Type: CODECOMMIT
+      SourceVersion: 1
+      TimeoutInMinutes: 10
+
+  ArtifactBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: changhyun-changhyun-s3
+      AccessControl: Private
+
+  CodePipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      Name: codepipeline
+      RoleArn: !GetAtt CodePipelineRole.Arn
+      ArtifactStore:
+        Type: S3
+        Location: !Ref ArtifactBucket
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: SourceAction
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Version: '1'
+                Provider: CodeCommit
+              OutputArtifacts:
+                - Name: SourceOutput
+              Configuration:
+                RepositoryName: gwangju-application-repo
+                BranchName: main
+              RunOrder: 1
+        - Name: Build
+          Actions:
+            - Name: BuildAction
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Version: '1'
+                Provider: CodeBuild
+              InputArtifacts:
+                - Name: SourceOutput
+              OutputArtifacts:
+                - Name: BuildOutput
+              Configuration:
+                ProjectName: argocdbuild
+              RunOrder: 1
+
+  CodePipelineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codepipeline.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: CodePipelinePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - '*'
+                Resource: '*'
+
+  
