@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: app
-        image: 702661606257.dkr.ecr.ap-northeast-2.amazonaws.com/eks-cicd-ecr:latest
+        image: 690677342176.dkr.ecr.ap-northeast-2.amazonaws.com/eks-cicd-ecr:latest
         ports:
         - containerPort: 8080
   strategy:

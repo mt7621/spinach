@@ -19,7 +19,7 @@ resource "aws_codepipeline" "codepipeline" {
       provider = "CodeCommit"
       version = 1
       output_artifacts = ["source_output"]
-      namespace = "changgom"
+      namespace = "ttt"
       run_order = 1
 
       configuration = {

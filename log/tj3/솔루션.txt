@@ -13,3 +13,16 @@
 3. eks clsuter 생성
 
 4. ecr image 생성
+
+
+aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin 690677342176.dkr.ecr.ap-northeast-2.amazonaws.com
+
+
+docker tag eks-logging-ecr:latest 690677342176.dkr.ecr.ap-northeast-2.amazonaws.com/eks-logging-ecr:latest
+
+docker push 690677342176.dkr.ecr.ap-northeast-2.amazonaws.com/eks-logging-ecr:latest
+
+
+kubectl apply -f ns.yaml
+kubectl apply -f deployment.yaml
+kubectl apply -f fluent-bit.yaml

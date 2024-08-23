@@ -1,7 +1,7 @@
 --- codecommit ---
 git config --global credential.helper '!aws codecommit credential-helper $@'
 git config --global credential.UseHttpPath true
-
+https://git-codecommit.ap-northeast-2.amazonaws.com/v1/repos/wsi-repo
 
 --- 해야 할거 ---
 1. terraform 실행

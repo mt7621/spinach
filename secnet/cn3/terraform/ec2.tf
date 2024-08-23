@@ -4,7 +4,7 @@ resource "tls_private_key" "pk" {
 }
 
 resource "aws_key_pair" "bastion_key_pair" {
-  key_name = "bastion"
+  key_name = "bastionfff"
   public_key = tls_private_key.pk.public_key_openssh
 }
 

@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "codepipeline_s3_bucket" {
-  bucket = "codepipeline-eks-cicd-changgom-bucket"
+  bucket = "codepipeline-eks-cicd-wefwefwef-bucket"
 
   force_destroy = true
 }

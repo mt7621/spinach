@@ -22,7 +22,7 @@ resource "aws_security_group" "ecs_alb_sg" {
 }
 
 resource "aws_lb" "ecs_alb" {
-  name = "wsi-alb"
+  name = "wsi-ci-alb"
   load_balancer_type = "application"
   security_groups = [
     aws_security_group.ecs_alb_sg.id

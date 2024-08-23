@@ -13,3 +13,8 @@
 3. fluentbit 설치 & 실행
 
 4. opensearch 권한적용
+
+AKIA2BT4T37QJV3KZGVU
+A20gJuX9sQmWpula72zhKbAr3vRfPIlQMnSmjhLN
+
+backend role
