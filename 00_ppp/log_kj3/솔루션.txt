@@ -1,0 +1,41 @@
+1. vpc
+
+2. bastion
+
+3. eks
+
+--내가 할거--
+1. terraform 실행
+
+2. bastion에 필요한거 설치(docker, eksctl, kubectl)
+
+3. eks cluster 생성(그동안 매니페스트 작성)
+
+4. 나머지 매니페스트 적용
+
+
+
+sudo docker build -t eks-logging-ecr-a ./service-a
+sudo docker build -t eks-logging-ecr-b ./service-b
+sudo docker build -t eks-logging-ecr-c ./service-c
+
+
+aws ecr get-login-password --region ap-northeast-2 | sudo docker login --username AWS --password-stdin 690677342176.dkr.ecr.ap-northeast-2.amazonaws.com
+
+
+sudo docker tag eks-logging-ecr-a:latest 690677342176.dkr.ecr.ap-northeast-2.amazonaws.com/eks-logging-ecr-a:latest
+sudo docker tag eks-logging-ecr-b:latest 690677342176.dkr.ecr.ap-northeast-2.amazonaws.com/eks-logging-ecr-b:latest
+sudo docker tag eks-logging-ecr-c:latest 690677342176.dkr.ecr.ap-northeast-2.amazonaws.com/eks-logging-ecr-c:latest
+
+sudo docker push 690677342176.dkr.ecr.ap-northeast-2.amazonaws.com/eks-logging-ecr-a:latest
+sudo docker push 690677342176.dkr.ecr.ap-northeast-2.amazonaws.com/eks-logging-ecr-b:latest
+sudo docker push 690677342176.dkr.ecr.ap-northeast-2.amazonaws.com/eks-logging-ecr-c:latest
+
+
+kubectl apply -f appns.yaml
+kubectl apply -f loggingns.yaml
+kubectl apply -f fluen-bit.yaml
+kubectl apply -f fluentd.yaml
+kubectl apply -f app1/deployment.yaml
+kubectl apply -f app2/deployemtn.yaml
+kubectl apply -f app3/deployment.yaml
